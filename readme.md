@@ -1,3 +1,7 @@
+# This is a fork
+
+This is a fork for Laravel 8 support and the session fix https://github.com/404labfr/laravel-impersonate/pull/113 that wont get merged for years now.
+
 # Laravel Impersonate
 
 [![Build Status](https://travis-ci.org/404labfr/laravel-impersonate.svg?branch=master)](https://travis-ci.org/404labfr/laravel-impersonate) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/404labfr/laravel-impersonate/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/404labfr/laravel-impersonate/?branch=master)

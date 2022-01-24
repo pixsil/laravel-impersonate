@@ -5,10 +5,11 @@ namespace Lab404\Impersonate;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Event;
 use Illuminate\View\Compilers\BladeCompiler;
-use Lab404\Impersonate\Guard\SessionGuard;
+use Lab404\Impersonate\Guard\SessionGuardMixin;
 use Lab404\Impersonate\Middleware\ProtectFromImpersonation;
 use Lab404\Impersonate\Services\ImpersonateManager;
 
@@ -72,16 +73,16 @@ class ImpersonateServiceProvider extends \Illuminate\Support\ServiceProvider
     protected function registerBladeDirectives()
     {
         $this->app->afterResolving('blade.compiler', function (BladeCompiler $bladeCompiler) {
-            $bladeCompiler->directive('impersonating', function ($guard = null) {
-                return "<?php if (is_impersonating({$guard})) : ?>";
+            $bladeCompiler->directive('impersonating', function () {
+                return "<?php if (is_impersonating()) : ?>";
             });
 
             $bladeCompiler->directive('endImpersonating', function () {
                 return '<?php endif; ?>';
             });
 
-            $bladeCompiler->directive('canImpersonate', function ($guard = null) {
-                return "<?php if (can_impersonate({$guard})) : ?>";
+            $bladeCompiler->directive('canImpersonate', function () {
+                return "<?php if (can_impersonate()) : ?>";
             });
 
             $bladeCompiler->directive('endCanImpersonate', function () {
@@ -89,10 +90,7 @@ class ImpersonateServiceProvider extends \Illuminate\Support\ServiceProvider
             });
 
             $bladeCompiler->directive('canBeImpersonated', function ($expression) {
-                $args = preg_split("/,(\s+)?/", $expression);
-                $guard = $args[1] ?? null;
-
-                return "<?php if (can_be_impersonated({$args[0]}, {$guard})) : ?>";
+                return "<?php if (can_be_impersonated({$expression})) : ?>";
             });
 
             $bladeCompiler->directive('endCanBeImpersonated', function () {
@@ -112,10 +110,14 @@ class ImpersonateServiceProvider extends \Illuminate\Support\ServiceProvider
         $router = $this->app['router'];
 
         $router->macro('impersonate', function () use ($router) {
-            $router->get('/impersonate/take/{id}/{guardName?}',
-                '\Lab404\Impersonate\Controllers\ImpersonateController@take')->name('impersonate');
-            $router->get('/impersonate/leave',
-                '\Lab404\Impersonate\Controllers\ImpersonateController@leave')->name('impersonate.leave');
+            $router->get(
+                '/impersonate/take/{id}/{guardName?}',
+                '\Lab404\Impersonate\Controllers\ImpersonateController@take'
+            )->name('impersonate');
+            $router->get(
+                '/impersonate/leave',
+                '\Lab404\Impersonate\Controllers\ImpersonateController@leave'
+            )->name('impersonate.leave');
         });
     }
 
@@ -128,25 +130,7 @@ class ImpersonateServiceProvider extends \Illuminate\Support\ServiceProvider
         /** @var AuthManager $auth */
         $auth = $this->app['auth'];
 
-        $auth->extend('session', function (Application $app, $name, array $config) use ($auth) {
-            $provider = $auth->createUserProvider($config['provider']);
-
-            $guard = new SessionGuard($name, $provider, $app['session.store']);
-
-            if (method_exists($guard, 'setCookieJar')) {
-                $guard->setCookieJar($app['cookie']);
-            }
-
-            if (method_exists($guard, 'setDispatcher')) {
-                $guard->setDispatcher($app['events']);
-            }
-
-            if (method_exists($guard, 'setRequest')) {
-                $guard->setRequest($app->refresh('request', $guard, 'setRequest'));
-            }
-
-            return $guard;
-        });
+        SessionGuard::mixin(new SessionGuardMixin);
     }
 
     /**

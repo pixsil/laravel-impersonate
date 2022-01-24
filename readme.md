@@ -2,6 +2,27 @@
 
 This is a fork for Laravel 8 support and the session fix https://github.com/404labfr/laravel-impersonate/pull/113 that wont get merged for years now.
 
+## How to use?
+
+Add to composer:
+
+```
+    "require": {
+        "lab404/laravel-impersonate": "dev-master"
+    },
+```
+
+And:
+
+```
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/pixsil/laravel-impersonate.git"
+        }
+    ]
+```
+
 # Laravel Impersonate
 
 [![Build Status](https://travis-ci.org/404labfr/laravel-impersonate.svg?branch=master)](https://travis-ci.org/404labfr/laravel-impersonate) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/404labfr/laravel-impersonate/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/404labfr/laravel-impersonate/?branch=master)
